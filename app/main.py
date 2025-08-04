@@ -12,6 +12,7 @@ TEMPERATURE = Gauge('app_temperature_celsius', 'Simulated temperature')
 @app.route("/")
 @REQUEST_TIME.time()
 def index():
+    time.sleep(0.6)
     REQUEST_COUNT.inc()
     temp = random.uniform(30, 100)
     TEMPERATURE.set(temp)

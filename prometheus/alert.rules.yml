@@ -1,11 +1,35 @@
 groups:
-  - name: example
-    rules:
-      - alert: HighCPUUsage
-        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100) > 80
-        for: 30s
-        labels:
-          severity: warning
-        annotations:
-          summary: "High CPU usage detected"
-          description: "CPU usage is above 80% for {{ $labels.instance }}"
+- name: example
+  rules:
+  - alert: HighCPUUsage
+    expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100) > 80
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: "High CPU usage detected"
+      description: "CPU usage is above 80% for {{ $labels.instance }}"
+  - alert: HighRequestLatency
+    expr: rate(request_processing_seconds_sum[5m]) / rate(request_processing_seconds_count[5m]) > 0.5
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High request latency detected"
+      description: "{{ $labels.instance }} has a request latency above 0.5s for more than 1 minute."
+  - alert: HighRequestRate
+    expr: rate(app_requests_total[5m]) > 10
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High request rate detected"
+      description: "{{ $labels.instance }} is receiving more than 10 requests per second."
+  - alert: HighTemperature
+    expr: app_temperature_celsius > 80
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "High temperature detected"
+      description: "{{ $labels.instance }} has a temperature above 80°C."
