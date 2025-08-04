@@ -1,0 +1,10 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  receiver: 'logfile'
+
+receivers:
+  - name: 'logfile'
+    webhook_configs:
+      - url: 'http://localhost:5001/'

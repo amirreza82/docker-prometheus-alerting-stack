@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+
+  app:
+      build:
+        context: ./app
+      ports:
+        - "5050:5000"
+        - "8000:8000"
+  prometheus:
+    image: docker.arvancloud.ir/prom/prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
+    ports:
+      - "9090:9090"
+
+  alertmanager:
+    image: docker.arvancloud.ir/prom/alertmanager
+    volumes:
+      - ./alertmanager/config.yml:/etc/alertmanager/config.yml
+    ports:
+      - "9093:9093"
+
+  node-exporter:
+    image: docker.arvancloud.ir/prom/node-exporter
+    ports:
+      - "9100:9100"
+
+  grafana:
+    image: docker.arvancloud.ir/grafana/grafana
+    ports:
+      - "3000:3000"
