@@ -1,32 +1,43 @@
-import threading
 import requests
 import time
-import random
+import math
+from itertools import cycle
 
-BASE_URL = "http://localhost:5000"
-ENDPOINTS = ["/", "/fail", "/slow", "/random"]
-CONCURRENT_THREADS = 10
-DELAY_BETWEEN_CALLS = 0.1  # seconds
+# تنظیمات
+BASE_RATE = 50          # حداقل تعداد درخواست‌ها در هر ثانیه
+AMPLITUDE = 30          # دامنه تغییرات
+PERIOD = 120            # دوره سینوسی بر حسب ثانیه
 
-def hit_endpoint():
-    while True:
-        endpoint = random.choice(ENDPOINTS)
-        url = BASE_URL + endpoint
-        try:
-            response = requests.get(url, timeout=10)
-            print(f"[{endpoint}] {response.status_code}")
-        except Exception as e:
-            print(f"[{endpoint}] Error: {e}")
-        time.sleep(DELAY_BETWEEN_CALLS)
+ENDPOINTS = [
+    "http://localhost:5050/",
+    "http://localhost:5050/fail",
+    "http://localhost:5050/slow",
+    "http://localhost:5050/random"
+]
+
+def get_current_rate(t):
+    # نرخ درخواست لحظه‌ای به صورت سینوسی (بین BASE_RATE - AMPLITUDE تا BASE_RATE + AMPLITUDE)
+    return BASE_RATE + AMPLITUDE * math.sin(2 * math.pi * t / PERIOD)
 
 def main():
-    threads = []
-    for _ in range(CONCURRENT_THREADS):
-        t = threading.Thread(target=hit_endpoint, daemon=True)
-        t.start()
-        threads.append(t)
+    start_time = time.time()
+    endpoints_cycle = cycle(ENDPOINTS)
     while True:
-        time.sleep(1)
+        elapsed = time.time() - start_time
+        current_rate = get_current_rate(elapsed)
+        current_rate = max(1, current_rate)  # جلوگیری از منفی شدن نرخ
+
+        # محاسبه تعداد درخواست در این ثانیه
+        requests_this_second = int(current_rate)
+        interval = 1.0 / requests_this_second
+
+        for _ in range(requests_this_second):
+            endpoint = next(endpoints_cycle)
+            try:
+                requests.get(endpoint, timeout=2)
+            except Exception as e:
+                print(f"Error requesting {endpoint}: {e}")
+            time.sleep(interval)
 
 if __name__ == "__main__":
     main()
